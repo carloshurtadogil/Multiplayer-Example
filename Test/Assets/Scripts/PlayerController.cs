@@ -9,6 +9,15 @@ public class PlayerController : NetworkBehaviour
     public Transform bulletSpawn;
     public float bulletSpeed;
 
+    void Start() 
+    {
+        if(isLocalPlayer) {
+            Camera.main.transform.position = this.transform.position - this.transform.forward * 10 + this.transform.up * 1;
+            Camera.main.transform.LookAt(this.transform.position);
+            Camera.main.transform.parent = this.transform;
+        }
+    }
+
     void Update()
     {
         if(!isLocalPlayer) {
