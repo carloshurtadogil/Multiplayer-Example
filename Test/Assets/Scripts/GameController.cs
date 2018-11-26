@@ -14,9 +14,9 @@ public class GameController : MonoBehaviour
     public string matchName = "Carlos";
     public uint matchSize = 5;
 
-    bool matchCreated;
     NetworkMatch networkMatch;
 
+    //Add network Match component to controller
     void Awake()
     {
         networkMatch = gameObject.AddComponent<NetworkMatch>();
@@ -25,28 +25,15 @@ public class GameController : MonoBehaviour
     // Use this for initialization
     void Start()
     { 
-        Debug.Log("Starting");
-
         create.onClick.AddListener(CreateMatch);
         join.onClick.AddListener(Join);
     }
 
-    void SetIPAddress()
-    {
-        string ipAddress = NetworkManager.singleton.networkAddress;
-        NetworkManager.singleton.networkAddress = ipAddress;
-    }
-
-
-    void SetPort(int p)
-    {
-        NetworkManager.singleton.networkPort = p;
-    }
-
+    //Action to create a match
     void CreateMatch() 
     {
-        manager.StartMatchMaker();
-
+        manager.StartMatchMaker();//Start matchmaker
+        
         if (!NetworkServer.active && !NetworkClient.active)
         {
             if(manager.matchInfo == null) 
@@ -56,7 +43,7 @@ public class GameController : MonoBehaviour
                 {
                     create.gameObject.SetActive(false);
                     join.gameObject.SetActive(false);
-                    manager.SetMatchHost("mm.unet.unity3d.com", 443, true);
+                    manager.SetMatchHost("mm.unet.unity3d.com", 443, true);//Connect to multiplayer service
                     /* PARAMETERS for CreateMatch()
                      * matchName: roomName which will be based off the user who created the room
                      * matchSize: The amount of players that will be in a room after host "cuts off" the roster
@@ -68,7 +55,7 @@ public class GameController : MonoBehaviour
                      * requestDomain: Perfect for future enhancements for different tiers (or difficulty)
                      * callBack: Callback for when the function completes
                      */
-                    manager.matchMaker.CreateMatch(matchName, matchSize, true, "", "", "", 0, 0, manager.OnMatchCreate);
+                    manager.matchMaker.CreateMatch(matchName, matchSize, true, "", "", "", 0, 0, manager.OnMatchCreate);//Create match room
 
 
                 }
@@ -86,13 +73,12 @@ public class GameController : MonoBehaviour
         }
         else
         {
-            Debug.LogError("Create Match Failed: " + success + ", " + info);
+            UpdateErrorMessage("Create Match Failed: " + success + ", " + info);
         }
     }
 
 
     void Join() {
-        Debug.Log("Joiningh");
         networkMatch.ListMatches(0, 20, "", false, 0, 0, OnInternetMatchList);
     }
 
@@ -104,29 +90,23 @@ public class GameController : MonoBehaviour
         {
             if (matches.Count != 0)
             {
-                Debug.Log("A list of matches was returned");
-
                 StartCoroutine(JoinMatch(matches.Count, matches)); 
             }
             else
             {
-                Debug.Log("No matches in requested room!");
+                UpdateErrorMessage("No matches at this time");
             }
         }
         else
         {
-            Debug.LogError("Couldn't connect to match maker");
+            UpdateErrorMessage("Error connecting to matchmaker");
         }
     }
 
     public IEnumerator JoinMatch(int mcount, List<MatchInfoSnapshot> matches) 
     {
         yield return new WaitForSeconds(1f);
-        Debug.Log("REACHED");
-
-        Debug.Log("SIZE: "+manager.matches);
         bool reached = false;
-        Debug.Log("REACHED");
         if(mcount > 0) {
             int selectedMatch = Random.Range(0, mcount);
             int count = 0;
@@ -140,8 +120,6 @@ public class GameController : MonoBehaviour
                     manager.matchName = match.name;
                     manager.matchSize = (uint)match.currentSize;
 
-                    Debug.Log("Hosted By: " + match.name);
-                    Debug.Log("Network ID: " + match.networkId);
                     /* PARAMETERS for CreateMatch()
                      * netID: The network identity of the match to be joined
                      * matchPassword: Password required to join this room (Will never be used...for now)
@@ -170,46 +148,17 @@ public class GameController : MonoBehaviour
         }
     }
 
-    public void OnMatchJoined(bool success, string extendedInfo, MatchInfo matchInfo)
-    {
-        if (success)
-        {
-            Debug.Log("Join match succeeded");
-            if (matchCreated)
-            {
-                Debug.LogWarning("Match already set up, aborting...");
-                return;
-            }
-            Utility.SetAccessTokenForNetwork(matchInfo.networkId, matchInfo.accessToken);
-            NetworkClient myClient = new NetworkClient();
-            myClient.RegisterHandler(MsgType.Connect, OnConnected);
-            myClient.Connect(matchInfo);
-        }
-        else
-        {
-            Debug.LogError("Join match failed " + extendedInfo);
-        }
-    }
-
     void OnJoinInternetMatch(bool success, string extendedInfo, MatchInfo matchInfo)
     {
-        Debug.Log("Join 1");
         if (success)
         {
-            Debug.Log("Able to join a match");
-
             MatchInfo hostInfo = matchInfo;
             NetworkManager.singleton.StartClient(hostInfo);
         }
         else
         {
-            Debug.LogError("Join match failed");
+            UpdateErrorMessage("Error Joining Matches");
         }
-    }
-
-    public void OnConnected(NetworkMessage msg)
-    {
-        Debug.Log("Connected!");
     }
 
     public void UpdateErrorMessage(string t) 
