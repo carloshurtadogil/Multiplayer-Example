@@ -46,7 +46,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!1 &1327603103091448
 GameObject:
   m_ObjectHideFlags: 0
@@ -514,6 +514,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentHealth: 100
   healthbar: {fileID: 224061707071995134}
+  destroyOnDeath: 0
 --- !u!136 &136407954725540012
 CapsuleCollider:
   m_ObjectHideFlags: 1
